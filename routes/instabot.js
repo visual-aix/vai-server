@@ -34,7 +34,7 @@ var sessionid = cred.data.sessionId;
 var user_id = db.data.me ? db.data.me.pk : "";
 
 const smartsleep = (fromInSeconds, toInSeconds) =>
-  sleep(1000 * (fromInSeconds + Math.random() * (toInSeconds - fromInSeconds)));
+  sleep(1000 * randomBetween(fromInSeconds, toInSeconds));
 
 const INSTAPI = {
   login: (username, password) =>
@@ -98,6 +98,34 @@ const INSTAPI = {
     axios
       .post(
         INSTAPI_PATH + "/user/suggestions",
+        new URLSearchParams({ sessionid, user_id })
+      )
+      .then(({ data }) => data),
+  getUserMedia: (user_id, count = 15) =>
+    axios
+      .post(
+        INSTAPI_PATH + "/media/user_medias",
+        new URLSearchParams({ sessionid, user_id, amount: count })
+      )
+      .then(({ data }) => data),
+  likeMedia: (media_id) =>
+    axios
+      .post(
+        INSTAPI_PATH + "/media/like",
+        new URLSearchParams({ sessionid, media_id })
+      )
+      .then(({ data }) => data),
+  commentMedia: (media_id, message) =>
+    axios
+      .post(
+        INSTAPI_PATH + "/media/comment",
+        new URLSearchParams({ sessionid, media_id, message })
+      )
+      .then(({ data }) => data),
+  followUser: (user_id) =>
+    axios
+      .post(
+        INSTAPI_PATH + "/user/follow",
         new URLSearchParams({ sessionid, user_id })
       )
       .then(({ data }) => data),
@@ -205,8 +233,10 @@ const AUTOMATION = {
     );
     await db.write();
 
+    let index = 0;
     for (const user_pk of db.data.suggestions) {
       let user = db.data.users[user_pk];
+      index++;
 
       if (!isAiArtUser(user)) {
         if (typeof user.biography === "undefined") {
@@ -218,17 +248,119 @@ const AUTOMATION = {
         }
         continue;
       }
-
+      console.log(index, "Engage with AI artist", user.username);
       await AUTOMATION.engageWithUser(user);
-      smartsleep(30, 120);
+      await smartsleep(30, 120);
     }
 
     console.log("Finished engaging.");
     return { message: "Not implemented" };
   },
   engageWithUser: async (user) => {
-    console.log("Engage with AI artist ", user.username);
+    if (user.lastInteractedWith) {
+      console.warn("> Already engaged with", user.username);
+      return;
+    }
+
+    const medias = await INSTAPI.getUserMedia(user.pk, 20);
+
+    const maxLikes = randomBetween(5, 10);
+    const maxComments = randomBetween(1, 4);
+
+    let likes = 0;
+    let comments = 0;
+    for (const media of medias) {
+      if (likes < maxLikes) {
+        await smartsleep(2, 10);
+        await INSTAPI.likeMedia(media.id);
+        likes++;
+      }
+
+      if (comments < maxComments) {
+        await smartsleep(8, 30);
+        var message = getRandomMessage(media.caption_text);
+        console.log("> Comment", message);
+        try {
+          await INSTAPI.commentMedia(media.id, message);
+        } catch (ex) {
+          console.error(ex.message);
+        }
+        comments++;
+      }
+    }
+
+    await INSTAPI.followUser(user.pk);
+    console.log("> Followed", user.username);
+
+    console.log("> Engaged with", likes, "likes and", comments, "comments");
+    user.lastInteractedWith = Date.now();
+    await db.write();
   },
+};
+
+//https://instagram-fonts.top/special-characters-emojis.php
+const EMOJIS = [
+  "🧡",
+  "💚",
+  "😍",
+  "❤️",
+  "❤️",
+  "❤️",
+  "❤",
+  "💪",
+  "👍",
+  "👏",
+  "🙌",
+  "🙌",
+  "🔥",
+  "🔥",
+  "🚀",
+  "✨",
+  "⭐",
+  "💫",
+];
+const MESSAGES = [
+  "Awesome",
+  "Awesome!",
+  "dope",
+  "Gorgeous",
+  "damn",
+  "Nice",
+  "Nice render",
+  "Love it",
+  "Impressive",
+  "Love your work",
+  "So beautiful",
+  "Good job! Very nice",
+  "Amazing artwork",
+  "Well done",
+  "Great job",
+  "I love your style",
+  "I like your style",
+  "wow",
+  "WOW",
+  "",
+];
+const getRandomMessage = (caption) => {
+  var emojis = "";
+  var emax = randomBetween(0, 3);
+  while (emax--) {
+    emojis += EMOJIS[randomBetween(0, EMOJIS.length - 1)];
+  }
+
+  var msg = MESSAGES[randomBetween(0, MESSAGES.length - 1)];
+
+  if (msg.indexOf("!") === -1) {
+    if (Math.random() < 0.3) msg += "!";
+  }
+
+  if (Math.random() < 0.3) msg = msg.toLowerCase();
+
+  var full_msg = msg + " " + emojis;
+  full_msg = full_msg.trim();
+  if (!full_msg) return "Awesome work";
+
+  return full_msg.trim();
 };
 
 const ai_keywords = [
@@ -263,6 +395,10 @@ const isAiArtUser = (user) => {
   }
 
   return false;
+};
+
+const randomBetween = (min, max) => {
+  return Math.floor(min + Math.random() * (max - min + 1));
 };
 
 export default (app) => {
