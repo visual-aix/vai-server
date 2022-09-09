@@ -72,18 +72,18 @@ const INSTAPI = {
           is_private,
         })
       ),
-  getFollowers: (user_id) =>
+  getFollowers: (user_id, use_cache = true) =>
     axios
       .post(
         INSTAPI_PATH + "/user/followers",
-        new URLSearchParams({ sessionid, user_id })
+        new URLSearchParams({ sessionid, user_id, use_cache })
       )
       .then(({ data }) => data),
-  getFollowing: (user_id) =>
+  getFollowing: (user_id, use_cache = true) =>
     axios
       .post(
         INSTAPI_PATH + "/user/following",
-        new URLSearchParams({ sessionid, user_id })
+        new URLSearchParams({ sessionid, user_id, use_cache })
       )
       .then(({ data }) => data),
   unfollow: (user_id) =>
@@ -122,34 +122,47 @@ const AUTOMATION = {
     return { message: "OK" };
   },
   load: async () => {
+    console.log("Getting user info, followers and followings...");
     var me = await INSTAPI.getUser(cred.data.username);
     db.data.me = me;
 
-    var followers = await INSTAPI.getFollowers(db.data.me.pk);
+    var followers = await INSTAPI.getFollowers(db.data.me.pk, false);
     db.data.followers = Object.keys(followers);
     db.data.users = merge(db.data.users, followers);
 
-    var following = await INSTAPI.getFollowing(db.data.me.pk);
+    var following = await INSTAPI.getFollowing(db.data.me.pk, false);
     db.data.following = Object.keys(following);
     db.data.users = merge(db.data.users, following);
+    await db.write();
 
-    db.write();
+    console.log(
+      `Loaded ${db.data.followers.length} followers and ${db.data.following.length} following for ${me.username}`
+    );
+
     return { message: "OK" };
   },
   removeFollowingThatNotFollow: async () => {
-    if (!db.data.followers.length)
-      return { message: "Missing followers. Please /instabot/load first." };
+    await AUTOMATION.load();
 
     var notfollowingback = db.data.following.filter(
       (f) => db.data.followers.indexOf(f) === -1
     );
     db.data.notfollowingback = notfollowingback.concat();
-    db.write();
+    await db.write();
 
     //start unfollow
-    console.log(db.data.notfollowingback.length + " not following back");
+    console.log(
+      notfollowingback.length + " not following back. Start unfollow."
+    );
     for (const toUnfollow of notfollowingback) {
       const user = db.data.users[toUnfollow];
+      if (
+        cred.data.followingWhitelist &&
+        cred.data.followingWhitelist.indexOf(user.username) > -1
+      ) {
+        console.log("Skipping", user.username);
+        continue;
+      }
       console.log("Unfollowing", user.username);
 
       await INSTAPI.unfollow(toUnfollow);
@@ -158,10 +171,11 @@ const AUTOMATION = {
         db.data.notfollowingback.indexOf(toUnfollow),
         1
       );
-      db.write();
-      await smartsleep(5, 10);
+      await db.write();
+      await smartsleep(5, 30);
     }
 
+    console.log("Unfollowing process completed");
     return {
       message: "OK",
     };
