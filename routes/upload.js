@@ -48,6 +48,7 @@ const upload = multer({
 
 export default (app) => {
   app.post("/upload", upload.single("file"), function (req, res) {
+    console.log("POST /upload");
     if (!req.file) throw "File not accepted";
 
     console.log("Uploaded ", req.file.originalname);

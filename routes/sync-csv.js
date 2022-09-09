@@ -2,7 +2,7 @@ import fs from "fs";
 
 export default (app) => {
   app.post("/sync-csv", function (req, res) {
-    console.log("Sync CSV command received", req.body);
+    console.log("POST /sync-csv");
 
     const file = fs.createWriteStream(
       LOCAL_FOLDER + "templates\\variables.csv"

@@ -18,8 +18,8 @@ if (db.data === null) {
 
 export default (app) => {
   app.get("/instabot", function (req, res) {
-    console.log("instabot ");
+    console.log("GET /instabot");
 
-    return res.json({});
+    return res.json(db.data);
   });
 };
