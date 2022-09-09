@@ -3,8 +3,9 @@ import cors from "cors";
 import directory from "serve-index";
 import commandLineArgs from "command-line-args";
 
-import uploader from "./upload.js";
-import syncCSV from "./sync-csv.js";
+import uploader from "./routes/upload.js";
+import syncCSV from "./routes/sync-csv.js";
+import instabot from "./routes/instabot.js";
 
 const options = commandLineArgs([
   { name: "port", alias: "p", type: Number, defaultValue: 8088 },
@@ -33,6 +34,7 @@ app.use(
 
 uploader(app);
 syncCSV(app);
+instabot(app);
 
 app.use("/", directory(LOCAL_FOLDER));
 app.use("/", express.static(LOCAL_FOLDER));
