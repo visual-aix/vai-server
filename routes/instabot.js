@@ -175,10 +175,13 @@ const AUTOMATION = {
       await smartsleep(5, 30);
     }
 
-    console.log("Unfollowing process completed");
+    console.log("Cleaning completed");
     return {
       message: "OK",
     };
+  },
+  startEngaging: async () => {
+    return { message: "Not implemented" };
   },
 };
 
@@ -191,6 +194,11 @@ export default (app) => {
   app.get("/instabot/clean", async function (req, res) {
     console.log("GET /instabot/clean");
     const json = await AUTOMATION.removeFollowingThatNotFollow();
+    return res.json(json);
+  });
+  app.get("/instabot/engage", async function (req, res) {
+    console.log("GET /instabot/engage");
+    const json = await AUTOMATION.startEngaging();
     return res.json(json);
   });
   app.get("/instabot/login", async function (req, res) {
