@@ -31,9 +31,10 @@ if (cred.data === null) {
   console.log("Loaded Instagram credentials from", credFile);
 }
 var sessionid = cred.data.sessionId;
+var user_id = db.data.me ? db.data.me.pk : "";
 
-const smartsleep = (start, end) =>
-  sleep(1000 * (start + Math.random() * (end - start)));
+const smartsleep = (fromInSeconds, toInSeconds) =>
+  sleep(1000 * (fromInSeconds + Math.random() * (toInSeconds - fromInSeconds)));
 
 const INSTAPI = {
   login: (username, password) =>
@@ -93,6 +94,13 @@ const INSTAPI = {
         new URLSearchParams({ sessionid, user_id })
       )
       .then(({ data }) => data),
+  getSuggestions: (user_id) =>
+    axios
+      .post(
+        INSTAPI_PATH + "/user/suggestions",
+        new URLSearchParams({ sessionid, user_id })
+      )
+      .then(({ data }) => data),
 };
 
 const AUTOMATION = {
@@ -125,12 +133,13 @@ const AUTOMATION = {
     console.log("Getting user info, followers and followings...");
     var me = await INSTAPI.getUser(cred.data.username);
     db.data.me = me;
+    user_id = db.data.me.pk;
 
-    var followers = await INSTAPI.getFollowers(db.data.me.pk, false);
+    var followers = await INSTAPI.getFollowers(user_id, false);
     db.data.followers = Object.keys(followers);
     db.data.users = merge(db.data.users, followers);
 
-    var following = await INSTAPI.getFollowing(db.data.me.pk, false);
+    var following = await INSTAPI.getFollowing(user_id, false);
     db.data.following = Object.keys(following);
     db.data.users = merge(db.data.users, following);
     await db.write();
@@ -151,6 +160,7 @@ const AUTOMATION = {
     await db.write();
 
     //start unfollow
+    var startAt = Date.now();
     console.log(
       notfollowingback.length + " not following back. Start unfollow."
     );
@@ -175,14 +185,84 @@ const AUTOMATION = {
       await smartsleep(5, 30);
     }
 
-    console.log("Cleaning completed");
+    console.log(
+      "Cleaning completed in",
+      (Date.now() - startAt) / 1000,
+      "seconds"
+    );
     return {
       message: "OK",
     };
   },
   startEngaging: async () => {
+    const suggestions = await INSTAPI.getSuggestions(user_id);
+    console.log("Got", suggestions.length, "suggestions");
+
+    db.data.suggestions = suggestions.map((s) => s.pk);
+    db.data.users = merge(
+      db.data.users,
+      Object.assign({}, ...suggestions.map((x) => ({ [x.pk]: x })))
+    );
+    await db.write();
+
+    for (const user_pk of db.data.suggestions) {
+      let user = db.data.users[user_pk];
+
+      if (!isAiArtUser(user)) {
+        if (typeof user.biography === "undefined") {
+          console.log("Get user biography", user.username);
+          user = merge(user, await INSTAPI.getUser(user.username));
+          db.data.users[user_pk] = user;
+          await db.write();
+          if (!isAiArtUser(user)) continue;
+        }
+        continue;
+      }
+
+      await AUTOMATION.engageWithUser(user);
+      smartsleep(30, 120);
+    }
+
+    console.log("Finished engaging.");
     return { message: "Not implemented" };
   },
+  engageWithUser: async (user) => {
+    console.log("Engage with AI artist ", user.username);
+  },
+};
+
+const ai_keywords = [
+  "MidJourney",
+  "Mid Journey",
+  "StableDiffusion",
+  "Stable Diffusion",
+  "Dalle",
+  "Dall-e",
+  "Digital Art",
+  "digital.art",
+  "daydream",
+];
+const isAiArtUser = (user) => {
+  if (user.full_name.indexOf("AI") > -1) return true;
+  if (user.username.toLowerCase().indexOf("ai") > -1) return true;
+
+  var name = user.full_name.toLowerCase();
+  var uname = user.username.toLowerCase();
+  for (let kw in ai_keywords) {
+    if (name.indexOf(kw.toLowerCase()) > -1) return true;
+    if (uname.indexOf(kw.toLowerCase()) > -1) return true;
+  }
+
+  if (user.biography) {
+    if (user.biography.indexOf("AI") > -1) return true;
+
+    var bio = user.biography.toLowerCase();
+    for (let kw in ai_keywords) {
+      if (bio.indexOf(kw.toLowerCase()) > -1) return true;
+    }
+  }
+
+  return false;
 };
 
 export default (app) => {
