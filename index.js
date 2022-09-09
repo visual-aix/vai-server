@@ -1,23 +1,22 @@
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const directory = require("serve-index");
-const multer = require("multer");
-const fs = require("fs");
-const https = require("https");
-const commandLineArgs = require("command-line-args");
+import express from "express";
+import cors from "cors";
+import directory from "serve-index";
+import multer from "multer";
+import fs from "fs";
+import commandLineArgs from "command-line-args";
+
 const options = commandLineArgs([
   { name: "port", alias: "p", type: Number, defaultValue: 8088 },
   {
-    name: "dir",
-    alias: "d",
+    name: "serve",
+    alias: "s",
     type: String,
     defaultValue: "D:\\Design\\ig\\challenges\\",
     defaultOption: true,
   },
 ]);
 
-const LOCAL_FOLDER = options.dir;
+const LOCAL_FOLDER = options.serve;
 const PORT = options.port;
 
 console.log("Listening on port " + PORT);
