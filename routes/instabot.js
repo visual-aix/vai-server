@@ -1,11 +1,12 @@
 import { join, dirname } from "path";
 import { Low, JSONFile } from "lowdb";
 import { fileURLToPath } from "url";
-import axios from "axios";
 import merge from "deepmerge-json";
-import sleep from "sleep-promise";
 
-const INSTAPI_PATH = "http://localhost:8001";
+import INSTAPI from "../instabot/api.js";
+import { randomBetween, smartsleep } from "../instabot/utils.js";
+import { getRandomComment } from "../instabot/comment.js";
+import { isAiArtUser } from "../instabot/profile.js";
 
 const dbFile = join(dirname(fileURLToPath(import.meta.url)), "../data/db.json");
 console.log("Using db", dbFile);
@@ -28,108 +29,11 @@ if (cred.data === null) {
   cred.data = {};
   await cred.write();
 } else {
+  if (cred.data.sessionId) INSTAPI.setSession(cred.data.sessionId);
   console.log("Loaded Instagram credentials from", credFile);
 }
-var sessionid = cred.data.sessionId;
+
 var user_id = db.data.me ? db.data.me.pk : "";
-
-const smartsleep = (fromInSeconds, toInSeconds) =>
-  sleep(1000 * randomBetween(fromInSeconds, toInSeconds));
-
-const INSTAPI = {
-  login: (username, password) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/auth/login",
-        new URLSearchParams({ username, password })
-      )
-      .then(({ data }) => data),
-  getUser: (username) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/user/info_by_username",
-        new URLSearchParams({ sessionid, username })
-      )
-      .then(
-        ({
-          data: {
-            pk,
-            username,
-            full_name,
-            biography,
-            category_name,
-            follower_count,
-            following_count,
-            is_private,
-          },
-        }) => ({
-          pk,
-          username,
-          full_name,
-          biography,
-          category_name,
-          follower_count,
-          following_count,
-          is_private,
-        })
-      ),
-  getFollowers: (user_id, use_cache = true) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/user/followers",
-        new URLSearchParams({ sessionid, user_id, use_cache })
-      )
-      .then(({ data }) => data),
-  getFollowing: (user_id, use_cache = true) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/user/following",
-        new URLSearchParams({ sessionid, user_id, use_cache })
-      )
-      .then(({ data }) => data),
-  unfollow: (user_id) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/user/unfollow",
-        new URLSearchParams({ sessionid, user_id })
-      )
-      .then(({ data }) => data),
-  getSuggestions: (user_id) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/user/suggestions",
-        new URLSearchParams({ sessionid, user_id })
-      )
-      .then(({ data }) => data),
-  getUserMedia: (user_id, count = 15) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/media/user_medias",
-        new URLSearchParams({ sessionid, user_id, amount: count })
-      )
-      .then(({ data }) => data),
-  likeMedia: (media_id) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/media/like",
-        new URLSearchParams({ sessionid, media_id })
-      )
-      .then(({ data }) => data),
-  commentMedia: (media_id, message) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/media/comment",
-        new URLSearchParams({ sessionid, media_id, message })
-      )
-      .then(({ data }) => data),
-  followUser: (user_id) =>
-    axios
-      .post(
-        INSTAPI_PATH + "/user/follow",
-        new URLSearchParams({ sessionid, user_id })
-      )
-      .then(({ data }) => data),
-};
 
 const AUTOMATION = {
   login: async () => {
@@ -148,7 +52,7 @@ const AUTOMATION = {
         );
         console.log("Logged in instagram!");
         cred.data.sessionId = sessionId;
-        sessionid = sessionId;
+        INSTAPI.setSession(sessionId);
         await cred.write();
       } catch (err) {
         return { message: err.message };
@@ -248,6 +152,12 @@ const AUTOMATION = {
         }
         continue;
       }
+
+      if (db.data.followers.indexOf(user_pk) > -1) {
+        console.log("Already a follower", user.username);
+        continue;
+      }
+
       console.log(index, "Engage with AI artist", user.username);
       await AUTOMATION.engageWithUser(user);
       await smartsleep(30, 120);
@@ -258,147 +168,64 @@ const AUTOMATION = {
   },
   engageWithUser: async (user) => {
     if (user.lastInteractedWith) {
-      console.warn("> Already engaged with", user.username);
+      console.warn(" > Already engaged with", user.username);
       return;
     }
+    user.lastInteractedWith = Date.now();
+    await db.write();
 
-    const medias = await INSTAPI.getUserMedia(user.pk, 20);
+    let medias = await INSTAPI.getUserMedia(user.pk, 20);
+    medias = medias.sort(() => (Math.random() > 0.5 ? 1 : -1));
 
     const maxLikes = randomBetween(5, 10);
-    const maxComments = randomBetween(1, 4);
+    const maxComments = randomBetween(1, 3);
 
     let likes = 0;
     let comments = 0;
     for (const media of medias) {
+      const suffix =
+        "[" +
+        (media.caption_text || "").substring(0, 30).split("\n").join(" ") +
+        "]@" +
+        user.username;
+      let liked = false;
       if (likes < maxLikes) {
-        await smartsleep(2, 10);
+        await smartsleep(2, 7);
+        console.log("❤️ ", suffix);
         await INSTAPI.likeMedia(media.id);
+        liked = true;
         likes++;
       }
 
-      if (comments < maxComments) {
-        await smartsleep(8, 30);
-        var message = getRandomMessage(media.caption_text);
-        console.log("> Comment", message);
+      if (liked && comments < maxComments) {
+        await smartsleep(4, 20);
+        var message = getRandomComment(media.caption_text);
+        console.log("> ", message, suffix);
         try {
           await INSTAPI.commentMedia(media.id, message);
         } catch (ex) {
-          console.error(ex.message);
+          console.error("ERROR", ex.message);
         }
         comments++;
       }
     }
 
+    await smartsleep(1, 3);
     await INSTAPI.followUser(user.pk);
-    console.log("> Followed", user.username);
+    console.log("👀", "Followed", user.username);
 
-    console.log("> Engaged with", likes, "likes and", comments, "comments");
-    user.lastInteractedWith = Date.now();
+    user.followedAt = Date.now();
     await db.write();
+
+    console.log(
+      "➡️➡️➡️",
+      likes,
+      "likes |",
+      comments,
+      "comments @",
+      user.username
+    );
   },
-};
-
-//https://instagram-fonts.top/special-characters-emojis.php
-const EMOJIS = [
-  "🧡",
-  "💚",
-  "😍",
-  "❤️",
-  "❤️",
-  "❤️",
-  "❤",
-  "💪",
-  "👍",
-  "👏",
-  "🙌",
-  "🙌",
-  "🔥",
-  "🔥",
-  "🚀",
-  "✨",
-  "⭐",
-  "💫",
-];
-const MESSAGES = [
-  "Awesome",
-  "Awesome!",
-  "dope",
-  "Gorgeous",
-  "damn",
-  "Nice",
-  "Nice render",
-  "Love it",
-  "Impressive",
-  "Love your work",
-  "So beautiful",
-  "Good job! Very nice",
-  "Amazing artwork",
-  "Well done",
-  "Great job",
-  "I love your style",
-  "I like your style",
-  "wow",
-  "WOW",
-  "",
-];
-const getRandomMessage = (caption) => {
-  var emojis = "";
-  var emax = randomBetween(0, 3);
-  while (emax--) {
-    emojis += EMOJIS[randomBetween(0, EMOJIS.length - 1)];
-  }
-
-  var msg = MESSAGES[randomBetween(0, MESSAGES.length - 1)];
-
-  if (msg.indexOf("!") === -1) {
-    if (Math.random() < 0.3) msg += "!";
-  }
-
-  if (Math.random() < 0.3) msg = msg.toLowerCase();
-
-  var full_msg = msg + " " + emojis;
-  full_msg = full_msg.trim();
-  if (!full_msg) return "Awesome work";
-
-  return full_msg.trim();
-};
-
-const ai_keywords = [
-  "MidJourney",
-  "Mid Journey",
-  "StableDiffusion",
-  "Stable Diffusion",
-  "Dalle",
-  "Dall-e",
-  "Digital Art",
-  "digital.art",
-  "daydream",
-];
-const isAiArtUser = (user) => {
-  if (user.full_name.indexOf("AI") > -1) return true;
-  if (user.username.toLowerCase().indexOf("ai") > -1) return true;
-
-  var name = user.full_name.toLowerCase();
-  var uname = user.username.toLowerCase();
-  for (let kw in ai_keywords) {
-    if (name.indexOf(kw.toLowerCase()) > -1) return true;
-    if (uname.indexOf(kw.toLowerCase()) > -1) return true;
-  }
-
-  if (user.biography) {
-    if (user.biography.indexOf("AI") > -1) return true;
-
-    var bio = user.biography.toLowerCase();
-    for (let kw in ai_keywords) {
-      if (bio.indexOf(kw.toLowerCase()) > -1) return true;
-    }
-  }
-
-  return false;
-};
-
-const randomBetween = (min, max) => {
-  return Math.floor(min + Math.random() * (max - min + 1));
 };
 
 export default (app) => {
