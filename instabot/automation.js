@@ -181,7 +181,7 @@ const AUTOMATION = {
 
       console.log(index, "Engage with AI artist", user.username);
       await AUTOMATION.engageWithUser(user);
-      await smartsleep(30, 120);
+      await smartsleep(30, 5 * 60);
     }
 
     console.log("Finished engaging.");
@@ -218,7 +218,8 @@ const AUTOMATION = {
         likes++;
       }
 
-      if (liked && comments < maxComments) {
+      const hasComments = media.comment_count > 0;
+      if (liked && hasComments && comments < maxComments) {
         await smartsleep(4, 20);
         var message = getComment(user.username, media.caption_text);
         console.log("> ", message, suffix);

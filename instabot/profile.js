@@ -15,7 +15,7 @@ export const isAiArtUser = (user) => {
 
   var name = user.full_name.toLowerCase();
   var uname = user.username.toLowerCase();
-  for (let kw in ai_keywords) {
+  for (let kw of ai_keywords) {
     if (name.indexOf(kw.toLowerCase()) > -1) return true;
     if (uname.indexOf(kw.toLowerCase()) > -1) return true;
   }
@@ -24,7 +24,7 @@ export const isAiArtUser = (user) => {
     if (user.biography.indexOf("AI") > -1) return true;
 
     var bio = user.biography.toLowerCase();
-    for (let kw in ai_keywords) {
+    for (let kw of ai_keywords) {
       if (bio.indexOf(kw.toLowerCase()) > -1) return true;
     }
   }

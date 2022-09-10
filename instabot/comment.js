@@ -120,7 +120,7 @@ export const getComment = (to_user, caption) => {
   var text = removeEmoji(comment).trim();
   while (user_comments.indexOf(text) > -1) {
     comment = getRandomComment(to_user, caption);
-    text = removeEmoji(comment).trim();
+    text = removeEmoji(comment).split("!").join(" ").trim().toLowerCase();
   }
 
   user_comments.push(text);
