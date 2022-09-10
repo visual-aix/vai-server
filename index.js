@@ -6,6 +6,7 @@ import commandLineArgs from "command-line-args";
 import uploader from "./routes/upload.js";
 import syncCSV from "./routes/sync-csv.js";
 import instabot from "./routes/instabot.js";
+import "./instabot/scheduler.js";
 
 const options = commandLineArgs([
   { name: "port", alias: "p", type: Number, defaultValue: 8088 },

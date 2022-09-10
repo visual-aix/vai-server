@@ -38,6 +38,11 @@ if (cred.data === null) {
 var user_id = db.data.me ? db.data.me.pk : "";
 //--- BOOTSTRAP
 
+const RUNNING = {
+  removeFollowingThatNotFollow: false,
+  startEngaging: false,
+};
+
 const AUTOMATION = {
   login: async () => {
     await cred.read();
@@ -86,6 +91,10 @@ const AUTOMATION = {
     return { message: "OK" };
   },
   removeFollowingThatNotFollow: async () => {
+    if (RUNNING.removeFollowingThatNotFollow)
+      console.warn("removeFollowingThatNotFollow already running. Skipped");
+
+    RUNNING.removeFollowingThatNotFollow = true;
     await AUTOMATION.load();
 
     var notfollowingback = db.data.following.filter(
@@ -143,11 +152,18 @@ const AUTOMATION = {
       (Date.now() - startAt) / 1000,
       "seconds"
     );
+
+    RUNNING.removeFollowingThatNotFollow = false;
     return {
       message: "OK",
     };
   },
   startEngaging: async () => {
+    if (RUNNING.startEngaging)
+      console.warn("startEngaging already running. Skipped");
+
+    RUNNING.startEngaging = true;
+
     const suggestions = await INSTAPI.getSuggestions(user_id);
     console.log("Got", suggestions.length, "suggestions");
 
@@ -185,7 +201,8 @@ const AUTOMATION = {
     }
 
     console.log("Finished engaging.");
-    return { message: "Not implemented" };
+    RUNNING.startEngaging = false;
+    return { message: "OK" };
   },
   engageWithUser: async (user) => {
     if (user.lastInteractedWith) {
