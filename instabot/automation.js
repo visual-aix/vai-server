@@ -11,7 +11,6 @@ import INSTAPI from "./api.js";
 
 //--- BOOTSTRAP
 const dbFile = join(dirname(fileURLToPath(import.meta.url)), "../data/db.json");
-console.log("Using db", dbFile);
 const db = new Low(new JSONFile(dbFile));
 
 await db.read();
@@ -32,7 +31,10 @@ if (cred.data === null) {
   await cred.write();
 } else {
   if (cred.data.sessionId) INSTAPI.setSession(cred.data.sessionId);
-  console.log("Loaded Instagram credentials from", credFile);
+
+  setTimeout(() => {
+    console.log("Loaded Instagram credentials from", credFile);
+  }, 500);
 }
 
 var user_id = db.data.me ? db.data.me.pk : "";
