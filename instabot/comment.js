@@ -99,7 +99,7 @@ export const getRandomComment = (caption) => {
   msg = msg.trim();
 
   var full_msg = msg;
-  if (Math.random() > 0.75) {
+  if (Math.random() < 0.75) {
     full_msg = msg + " " + emojis;
   } else {
     full_msg = emojis + " " + msg;
