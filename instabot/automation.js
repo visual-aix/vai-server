@@ -5,7 +5,7 @@ import merge from "deepmerge-json";
 import moment from "moment";
 
 import { randomBetween, smartsleep } from "./utils.js";
-import { getRandomComment } from "./comment.js";
+import { getComment } from "./comment.js";
 import { isAiArtUser } from "./profile.js";
 import INSTAPI from "./api.js";
 
@@ -220,7 +220,7 @@ const AUTOMATION = {
 
       if (liked && comments < maxComments) {
         await smartsleep(4, 20);
-        var message = getRandomComment(media.caption_text);
+        var message = getComment(user.username, media.caption_text);
         console.log("> ", message, suffix);
         try {
           await INSTAPI.commentMedia(media.id, message);

@@ -81,7 +81,8 @@ const MESSAGES = [
   "Wow. this AI amazes me",
   "WOW",
 ];
-export const getRandomComment = (caption) => {
+
+const getRandomComment = (to_user, caption) => {
   var emojis = "";
   var emax = randomBetween(0, 3);
   while (emax--) {
@@ -109,3 +110,43 @@ export const getRandomComment = (caption) => {
 
   return full_msg.trim();
 };
+
+var users = {};
+export const getComment = (to_user, caption) => {
+  users[to_user] = users[to_user] || [];
+  var user_comments = users[to_user];
+
+  var comment = getRandomComment(to_user, caption);
+  var text = removeEmoji(comment).trim();
+  while (user_comments.indexOf(text) > -1) {
+    comment = getRandomComment(to_user, caption);
+    text = removeEmoji(comment).trim();
+  }
+
+  user_comments.push(text);
+  return comment;
+};
+
+function removeEmoji(str) {
+  let strCopy = str;
+  const emojiKeycapRegex = /[\u0023-\u0039]\ufe0f?\u20e3/g;
+  const emojiRegex = /\p{Extended_Pictographic}/gu;
+  const emojiComponentRegex = /\p{Emoji_Component}/gu;
+  if (emojiKeycapRegex.test(strCopy)) {
+    strCopy = strCopy.replace(emojiKeycapRegex, "");
+  }
+  if (emojiRegex.test(strCopy)) {
+    strCopy = strCopy.replace(emojiRegex, "");
+  }
+  if (emojiComponentRegex.test(strCopy)) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const emoji of strCopy.match(emojiComponentRegex) || []) {
+      if (/[\d|*|#]/.test(emoji)) {
+        continue;
+      }
+      strCopy = strCopy.replace(emoji, "");
+    }
+  }
+
+  return strCopy;
+}
