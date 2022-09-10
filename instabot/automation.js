@@ -241,7 +241,7 @@ const AUTOMATION = {
     await db.write();
 
     console.log(
-      "➡️➡️➡️",
+      "➡️➡️➡️➡️➡️➡️➡️➡️➡️",
       likes,
       "likes |",
       comments,

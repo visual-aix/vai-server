@@ -41,7 +41,7 @@ const MESSAGES = [
   "Great job",
   "Great work",
   "Great! Always had a sweet tooth for this stuff",
-  "Hats of to you",
+  "Hats off to you",
   "I like your style",
   "I love your style",
   "Impressive art",
