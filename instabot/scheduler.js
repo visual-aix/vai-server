@@ -8,9 +8,9 @@ const at4PM = "0 16 * * *";
 const at9PM = "0 21 * * *";
 
 const start = () => {
-  console.log("------ Automation scheduled");
+  console.log("Automation schedule started");
   schedule.scheduleJob(at10AM, async function () {
-    console.log("Running schedule", new Date().toDateString());
+    console.log("------ Running schedule", new Date().toDateString());
     await smartsleep(60 * 1, 60 * 50);
     await AUTOMATION.startEngaging();
   });

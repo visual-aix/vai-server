@@ -33,7 +33,7 @@ if (cred.data === null) {
   if (cred.data.sessionId) INSTAPI.setSession(cred.data.sessionId);
 
   setTimeout(() => {
-    console.log("Loaded Instagram credentials from", credFile);
+    console.log("Loaded Instagram credentials");
   }, 500);
 }
 
@@ -93,8 +93,10 @@ const AUTOMATION = {
     return { message: "OK" };
   },
   removeFollowingThatNotFollow: async () => {
-    if (RUNNING.removeFollowingThatNotFollow)
+    if (RUNNING.removeFollowingThatNotFollow) {
       console.warn("removeFollowingThatNotFollow already running. Skipped");
+      return { message: "Already running" };
+    }
 
     RUNNING.removeFollowingThatNotFollow = true;
     await AUTOMATION.load();
@@ -161,8 +163,10 @@ const AUTOMATION = {
     };
   },
   startEngaging: async () => {
-    if (RUNNING.startEngaging)
+    if (RUNNING.startEngaging) {
       console.warn("startEngaging already running. Skipped");
+      return { message: "Already running" };
+    }
 
     const startAt = Date.now();
     RUNNING.startEngaging = true;
