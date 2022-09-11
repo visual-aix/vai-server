@@ -106,7 +106,7 @@ const AUTOMATION = {
     await db.write();
 
     //start unfollow
-    var startAt = Date.now();
+    const startAt = Date.now();
     console.log(
       notfollowingback.length + " not following back. Start unfollow."
     );
@@ -164,6 +164,7 @@ const AUTOMATION = {
     if (RUNNING.startEngaging)
       console.warn("startEngaging already running. Skipped");
 
+    const startAt = Date.now();
     RUNNING.startEngaging = true;
 
     const suggestions = await INSTAPI.getSuggestions(user_id);
@@ -176,7 +177,8 @@ const AUTOMATION = {
     );
     await db.write();
 
-    let index = 0;
+    let index = 0,
+      engagedCount = 0;
     for (const user_pk of db.data.suggestions) {
       let user = db.data.users[user_pk];
       index++;
@@ -198,18 +200,27 @@ const AUTOMATION = {
       }
 
       console.log(index, "Engage with AI artist", user.username);
-      await AUTOMATION.engageWithUser(user);
-      await smartsleep(30, 5 * 60);
+      const engaged = await AUTOMATION.engageWithUser(user);
+      if (engaged) {
+        await smartsleep(30, 5 * 60);
+        engagedCount++;
+      }
     }
 
-    console.log("Finished engaging.");
+    console.log(
+      "Finished engaging with",
+      engagedCount,
+      "in",
+      (Date.now() - startAt) / 1000,
+      "seconds"
+    );
     RUNNING.startEngaging = false;
     return { message: "OK" };
   },
   engageWithUser: async (user) => {
     if (user.lastInteractedWith) {
       console.warn(" > Already engaged with", user.username);
-      return;
+      return false;
     }
     user.lastInteractedWith = Date.now();
     await db.write();
@@ -268,6 +279,8 @@ const AUTOMATION = {
       "comments @",
       user.username
     );
+
+    return true;
   },
 };
 
