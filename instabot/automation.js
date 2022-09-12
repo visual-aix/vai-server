@@ -151,7 +151,7 @@ const AUTOMATION = {
       }
 
       var followedSince = moment(user.followedAt);
-      if (followedSince.diff(moment(), "days") < 3) {
+      if (moment().diff(followedSince, "days") < 3) {
         console.log(
           index,
           `Skipping (${followedSince.fromNow()})`,
