@@ -10,25 +10,25 @@ const at9PM = "0 21 * * *";
 const start = () => {
   console.log("Automation schedule started");
   schedule.scheduleJob(at10AM, async function () {
-    console.log("------ Running schedule", new Date().toDateString());
+    console.log("------ Running schedule", at10AM, new Date().toDateString());
     await smartsleep(60 * 1, 60 * 50);
     await AUTOMATION.startEngaging();
   });
 
   schedule.scheduleJob(at4PM, async function () {
-    console.log("------ Running schedule", new Date().toDateString());
+    console.log("------ Running schedule", at4PM, new Date().toDateString());
     await smartsleep(60 * 1, 60 * 50);
     await AUTOMATION.startEngaging();
   });
 
   schedule.scheduleJob(at9PM, async function () {
-    console.log("------ Running schedule", new Date().toDateString());
+    console.log("------ Running schedule", at9PM, new Date().toDateString());
     await smartsleep(60 * 1, 60 * 50);
     await AUTOMATION.startEngaging();
   });
 
   schedule.scheduleJob(at9AM, async function () {
-    console.log("------ Running schedule", new Date().toDateString());
+    console.log("------ Running schedule", at9AM, new Date().toDateString());
     await smartsleep(60 * 1, 60 * 50);
     await AUTOMATION.removeFollowingThatNotFollow();
   });

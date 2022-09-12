@@ -72,7 +72,7 @@ const AUTOMATION = {
     return { message: "OK" };
   },
   load: async () => {
-    console.log("Getting user info, followers and followings...");
+    console.log("Refreshing followers and following...");
     var me = await INSTAPI.getUser(cred.data.username);
     db.data.me = me;
     user_id = db.data.me.pk;
@@ -87,7 +87,12 @@ const AUTOMATION = {
     await db.write();
 
     console.log(
-      `Loaded ${db.data.followers.length} followers and ${db.data.following.length} following for ${me.username}`
+      `Loaded`,
+      db.data.followers.length,
+      "followers and",
+      db.data.following.length,
+      "following for",
+      me.username
     );
 
     return { message: "OK" };
@@ -107,11 +112,27 @@ const AUTOMATION = {
     db.data.notfollowingback = notfollowingback.concat();
     await db.write();
 
+    console.log(
+      db.data.followers.length - notfollowingback.length,
+      "/",
+      db.data.followers.length,
+      "follow you and you're not following back."
+    );
+    console.log(
+      db.data.following.length - notfollowingback.length,
+      "/",
+      db.data.following.length,
+      "you follow and they follow back."
+    );
     //start unfollow
     const startAt = Date.now();
     console.log(
-      notfollowingback.length + " not following back. Start unfollow."
+      notfollowingback.length,
+      "/",
+      db.data.following.length,
+      "you follow but they are not following back. Check unfollow."
     );
+
     let index = 0;
     for (const toUnfollow of notfollowingback) {
       index++;
@@ -152,12 +173,14 @@ const AUTOMATION = {
     }
 
     console.log(
+      `[${moment().format()}] `,
       "Cleaning completed in",
-      (Date.now() - startAt) / 1000,
-      "seconds"
+      moment(startAt).fromNow(true)
     );
 
     RUNNING.removeFollowingThatNotFollow = false;
+    await AUTOMATION.load();
+
     return {
       message: "OK",
     };
@@ -170,6 +193,8 @@ const AUTOMATION = {
 
     const startAt = Date.now();
     RUNNING.startEngaging = true;
+
+    await AUTOMATION.load();
 
     const suggestions = await INSTAPI.getSuggestions(user_id);
     console.log("Got", suggestions.length, "suggestions");
@@ -212,11 +237,11 @@ const AUTOMATION = {
     }
 
     console.log(
+      `[${moment().format()}] `,
       "Finished engaging with",
       engagedCount,
       "in",
-      (Date.now() - startAt) / 1000,
-      "seconds"
+      moment(startAt).fromNow(true)
     );
     RUNNING.startEngaging = false;
     return { message: "OK" };
@@ -241,8 +266,7 @@ const AUTOMATION = {
       const suffix =
         "[" +
         (media.caption_text || "").substring(0, 30).split("\n").join(" ") +
-        "]@" +
-        user.username;
+        "]";
       let liked = false;
       if (likes < maxLikes) {
         await smartsleep(2, 7);
@@ -256,7 +280,7 @@ const AUTOMATION = {
       if (liked && hasComments && comments < maxComments) {
         await smartsleep(4, 20);
         var message = getComment(user.username, media.caption_text);
-        console.log("> ", message, suffix);
+        console.log(message, suffix);
         try {
           await INSTAPI.commentMedia(media.id, message);
         } catch (ex) {
@@ -276,12 +300,14 @@ const AUTOMATION = {
     await db.write();
 
     console.log(
-      "➡️➡️➡️➡️➡️➡️➡️➡️➡️",
+      "---->",
       likes,
       "likes |",
       comments,
-      "comments @",
-      user.username
+      "comments |",
+      user.username,
+      "| took",
+      moment(user.lastInteractedWith).fromNow(true)
     );
 
     return true;
