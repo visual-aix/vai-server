@@ -212,6 +212,8 @@ const AUTOMATION = {
       let user = db.data.users[user_pk];
       index++;
 
+      if (user.is_private) continue;
+
       if (!isAiArtUser(user)) {
         if (typeof user.biography === "undefined") {
           console.log("Get user biography", user.username);
@@ -231,7 +233,7 @@ const AUTOMATION = {
       console.log(index, "Engage with AI artist", user.username);
       const engaged = await AUTOMATION.engageWithUser(user);
       if (engaged) {
-        await smartsleep(30, 5 * 60);
+        await smartsleep(30, 3 * 60);
         engagedCount++;
       }
     }
