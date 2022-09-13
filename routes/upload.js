@@ -1,52 +1,53 @@
+import fs from "fs";
 import multer from "multer";
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uf = req.query.folder || "uploads";
-    const ufa = LOCAL_FOLDER + uf;
+export default (LOCAL_FOLDER, app) => {
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const uf = req.query.folder || "uploads";
+      const ufa = LOCAL_FOLDER + uf;
 
-    if (!fs.existsSync(ufa)) {
-      console.log("Creating folder ", uf);
-      fs.mkdirSync(ufa);
-    }
-
-    const dirfiles = fs
-      .readdirSync(ufa, { withFileTypes: true })
-      .filter((item) => !item.isDirectory())
-      .map((item) => item.name);
-
-    var fn = 0;
-    var ok = false;
-    while (!ok) {
-      fn++;
-      if (dirfiles.indexOf(fn + ".png") === -1) {
-        fn = fn + ".png";
-        break;
+      if (!fs.existsSync(ufa)) {
+        console.log("Creating folder ", uf);
+        fs.mkdirSync(ufa);
       }
-    }
 
-    file.name = fn;
+      const dirfiles = fs
+        .readdirSync(ufa, { withFileTypes: true })
+        .filter((item) => !item.isDirectory())
+        .map((item) => item.name);
 
-    cb(null, ufa);
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.name);
-  },
-});
+      var fn = 0;
+      var ok = false;
+      while (!ok) {
+        fn++;
+        if (dirfiles.indexOf(fn + ".png") === -1) {
+          fn = fn + ".png";
+          break;
+        }
+      }
 
-const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype !== "image/png") return cb(null, false);
-    if (file.originalname.indexOf(".png") > -1)
-      file.originalname = file.originalname.replace(".png", "");
+      file.name = fn;
 
-    file.extension = "png";
-    return cb(null, true);
-  },
-});
+      cb(null, ufa);
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.name);
+    },
+  });
 
-export default (app) => {
+  const upload = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype !== "image/png") return cb(null, false);
+      if (file.originalname.indexOf(".png") > -1)
+        file.originalname = file.originalname.replace(".png", "");
+
+      file.extension = "png";
+      return cb(null, true);
+    },
+  });
+
   app.post("/upload", upload.single("file"), function (req, res) {
     console.log("POST /upload");
     if (!req.file) throw "File not accepted";

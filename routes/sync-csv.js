@@ -1,6 +1,6 @@
 import fs from "fs";
 
-export default (app) => {
+export default (LOCAL_FOLDER, app) => {
   app.post("/sync-csv", function (req, res) {
     console.log("POST /sync-csv");
 

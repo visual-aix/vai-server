@@ -33,8 +33,8 @@ app.use(
   })
 );
 
-uploader(app);
-syncCSV(app);
+uploader(LOCAL_FOLDER, app);
+syncCSV(LOCAL_FOLDER, app);
 instabot(app);
 
 app.use("/", directory(LOCAL_FOLDER));
