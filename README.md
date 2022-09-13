@@ -6,6 +6,10 @@ node index --serve D:\Design\ig\challenges\ --port 8088
 
 To use `instabot` feature you need to launch [instagrapi-rest](https://github.com/visual-aix/instagrapi-rest).
 
+```
+REST InstagrAPI Docs http://localhost:8001/docs#/
+```
+
 ---
 
 To configure instagram automation store this json in `data/credentials.json`
