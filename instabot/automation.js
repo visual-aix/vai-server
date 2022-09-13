@@ -54,19 +54,17 @@ const AUTOMATION = {
           "No instagram credentials found. Provide them in credentials.json",
       });
 
-    if (!cred.data.sessionId) {
-      try {
-        const sessionId = await INSTAPI.login(
-          cred.data.username,
-          cred.data.password
-        );
-        console.log("Logged in instagram!");
-        cred.data.sessionId = sessionId;
-        INSTAPI.setSession(sessionId);
-        await cred.write();
-      } catch (err) {
-        return { message: err.message };
-      }
+    try {
+      const sessionId = await INSTAPI.login(
+        cred.data.username,
+        cred.data.password
+      );
+      console.log("Logged in instagram!");
+      cred.data.sessionId = sessionId;
+      INSTAPI.setSession(sessionId);
+      await cred.write();
+    } catch (err) {
+      return { message: err.message };
     }
 
     return { message: "OK" };
@@ -160,7 +158,7 @@ const AUTOMATION = {
         continue;
       }
 
-      console.log(index, "Unfollowing", user.username);
+      console.log(index, "Unfollowing", user.username, followedSince.fromNow());
 
       await INSTAPI.unfollow(toUnfollow);
 
@@ -226,14 +224,14 @@ const AUTOMATION = {
       }
 
       if (db.data.followers.indexOf(user_pk) > -1) {
-        console.log("Already a follower", user.username);
+        console.log(index, "Already a follower", user.username);
         continue;
       }
 
-      console.log(index, "Engage with AI artist", user.username);
+      console.log(index, "Engage with AI artist", user.username, "----->");
       const engaged = await AUTOMATION.engageWithUser(user);
       if (engaged) {
-        await smartsleep(30, 3 * 60);
+        await smartsleep(2 * 60, 5 * 60);
         engagedCount++;
       }
     }
