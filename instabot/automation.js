@@ -46,6 +46,7 @@ const RUNNING = {
 };
 
 const AUTOMATION = {
+  RUNNING: RUNNING,
   login: async () => {
     await cred.read();
     if (!(cred.data.username && cred.data.password))

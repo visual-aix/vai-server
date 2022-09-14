@@ -40,35 +40,50 @@ const INSTAPI = {
           following_count,
           is_private,
         })
-      ),
+      )
+      .catch((ex) => {
+        throw ex.response.statusText + ". Details: " + ex.response.data.detail;
+      }),
   getFollowers: (user_id, use_cache = true) =>
     axios
       .post(
         INSTAPI_PATH + "/user/followers",
         new URLSearchParams({ sessionid, user_id, use_cache })
       )
-      .then(({ data }) => data),
+      .then(({ data }) => data)
+      .catch((ex) => {
+        throw ex.response.statusText + ". Details: " + ex.response.data.detail;
+      }),
   getFollowing: (user_id, use_cache = true) =>
     axios
       .post(
         INSTAPI_PATH + "/user/following",
         new URLSearchParams({ sessionid, user_id, use_cache })
       )
-      .then(({ data }) => data),
+      .then(({ data }) => data)
+      .catch((ex) => {
+        throw ex.response.statusText + ". Details: " + ex.response.data.detail;
+      }),
   unfollow: (user_id) =>
     axios
       .post(
         INSTAPI_PATH + "/user/unfollow",
         new URLSearchParams({ sessionid, user_id })
       )
-      .then(({ data }) => data),
+      .then(({ data }) => data)
+      .catch((ex) => {
+        throw ex.response.statusText + ". Details: " + ex.response.data.detail;
+      }),
   getSuggestions: (user_id) =>
     axios
       .post(
         INSTAPI_PATH + "/user/suggestions",
         new URLSearchParams({ sessionid, user_id })
       )
-      .then(({ data }) => data),
+      .then(({ data }) => data)
+      .catch((ex) => {
+        throw ex.response.statusText + ". Details: " + ex.response.data.detail;
+      }),
   getUserMedia: (user_id, count = 15) =>
     axios
       .post(
