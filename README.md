@@ -7,6 +7,9 @@ node index --serve D:\Design\ig\challenges\ --port 8088
 To use `instabot` feature you need to launch [instagrapi-rest](https://github.com/visual-aix/instagrapi-rest).
 
 ```
+cd D:\Design\ig\instagrapi-rest\instagrapi-rest
+python3 -m uvicorn main:app --host 0.0.0.0 --port 8001
+
 REST InstagrAPI Docs http://localhost:8001/docs#/
 ```
 
