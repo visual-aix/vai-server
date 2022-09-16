@@ -232,7 +232,7 @@ const AUTOMATION = {
       console.log(index, "Engage with AI artist", user.username, "----->");
       const engaged = await AUTOMATION.engageWithUser(user);
       if (engaged) {
-        await smartsleep(2 * 60, 5 * 60);
+        await smartsleep(3 * 60, 15 * 60);
         engagedCount++;
       }
     }
@@ -270,7 +270,7 @@ const AUTOMATION = {
         "]";
       let liked = false;
       if (likes < maxLikes) {
-        await smartsleep(2, 7);
+        await smartsleep(2, 10);
         console.log("❤️ ", suffix);
         await INSTAPI.likeMedia(media.id);
         liked = true;
@@ -292,7 +292,7 @@ const AUTOMATION = {
     }
 
     if (likes > 0) {
-      await smartsleep(1, 3);
+      await smartsleep(2, 30);
       await INSTAPI.followUser(user.pk);
       console.log("👀", "Followed", user.username);
       user.followedAt = Date.now();

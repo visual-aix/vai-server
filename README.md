@@ -4,6 +4,12 @@ This will serve local files & folders specified by `serve` parameter on `port`.
 node index --serve D:\Design\ig\challenges\ --port 8088
 ```
 
+map local folder to a drive
+
+```
+subst V: D:\Design\ig\challenges
+```
+
 To use `instabot` feature you need to launch [instagrapi-rest](https://github.com/visual-aix/instagrapi-rest).
 
 ```
