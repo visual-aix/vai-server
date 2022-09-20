@@ -70,17 +70,17 @@ const AUTOMATION = {
 
     return { message: "OK" };
   },
-  load: async () => {
-    console.log("Refreshing followers and following...");
+  load: async (use_cache = true) => {
+    console.log("Refresh followers and following. use_cache", use_cache);
     var me = await INSTAPI.getUser(cred.data.username);
     db.data.me = me;
     user_id = db.data.me.pk;
 
-    var followers = await INSTAPI.getFollowers(user_id);
+    var followers = await INSTAPI.getFollowers(user_id, use_cache);
     db.data.followers = Object.keys(followers);
     db.data.users = merge(db.data.users, followers);
 
-    var following = await INSTAPI.getFollowing(user_id);
+    var following = await INSTAPI.getFollowing(user_id, use_cache);
     db.data.following = Object.keys(following);
     db.data.users = merge(db.data.users, following);
     await db.write();

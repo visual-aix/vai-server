@@ -4,7 +4,7 @@ export default (app) => {
   app.get("/instabot/load", async function (req, res) {
     console.log("GET /instabot/load");
     try {
-      const json = await AUTOMATION.load();
+      const json = await AUTOMATION.load(false);
       return res.json(json);
     } catch (ex) {
       console.error(ex);
