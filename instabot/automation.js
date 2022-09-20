@@ -76,11 +76,11 @@ const AUTOMATION = {
     db.data.me = me;
     user_id = db.data.me.pk;
 
-    var followers = await INSTAPI.getFollowers(user_id, false);
+    var followers = await INSTAPI.getFollowers(user_id);
     db.data.followers = Object.keys(followers);
     db.data.users = merge(db.data.users, followers);
 
-    var following = await INSTAPI.getFollowing(user_id, false);
+    var following = await INSTAPI.getFollowing(user_id);
     db.data.following = Object.keys(following);
     db.data.users = merge(db.data.users, following);
     await db.write();
@@ -133,6 +133,7 @@ const AUTOMATION = {
     );
 
     let index = 0;
+    let unfollowed = 0;
     for (const toUnfollow of notfollowingback) {
       index++;
       await smartsleep(0, 1);
@@ -162,6 +163,7 @@ const AUTOMATION = {
       console.log(index, "Unfollowing", user.username, followedSince.fromNow());
 
       await INSTAPI.unfollow(toUnfollow);
+      unfollowed++;
 
       db.data.notfollowingback.splice(
         db.data.notfollowingback.indexOf(toUnfollow),
@@ -174,7 +176,9 @@ const AUTOMATION = {
     console.log(
       `[${moment().format()}] `,
       "Cleaning completed in",
-      moment(startAt).fromNow(true)
+      moment(startAt).fromNow(true),
+      "unfollowed",
+      unfollowed
     );
 
     RUNNING.removeFollowingThatNotFollow = false;
