@@ -251,6 +251,44 @@ const AUTOMATION = {
     RUNNING.startEngaging = false;
     return { message: "OK" };
   },
+  engageWithTimeline: async () => {
+    if (RUNNING.engageWithTimeline) {
+      console.warn("engageWithTimeline already running. Skipped");
+      return { message: "Already running" };
+    }
+
+    const timeline = await INSTAPI.getTimeline();
+    for (const post of timeline) {
+      const media = post.media_or_ad;
+      if (!media) return;
+      if (media.commerciality_status !== "not_commercial") continue;
+      if (media.is_paid_partnership) continue;
+      if (!media.comment_likes_enabled) continue;
+
+      await smartsleep(2, 10);
+      console.log(
+        "❤️",
+        media.user.username,
+        "[",
+        (media.caption.text || "").substring(0, 30).split("\n").join(" "),
+        "]"
+      );
+      await INSTAPI.likeMedia(media.id);
+    }
+
+    const startAt = Date.now();
+    RUNNING.engageWithTimeline = true;
+
+    console.log(
+      `[${moment().format()}] `,
+      "Finished engaging with",
+      engagedCount,
+      "in",
+      moment(startAt).fromNow(true)
+    );
+    RUNNING.engageWithTimeline = false;
+    return { message: "OK" };
+  },
   engageWithUser: async (user) => {
     if (user.lastInteractedWith) {
       console.warn(" > Already engaged with", user.username);

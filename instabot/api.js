@@ -64,6 +64,13 @@ const INSTAPI = {
       .catch((ex) => {
         throw ex.response.statusText + ". Details: " + ex.response.data.detail;
       }),
+  getTimeline: () =>
+    axios
+      .get(INSTAPI_PATH + `/auth/timeline_feed?sessionid=${sessionid}`)
+      .then(({ data }) => data.feed_items)
+      .catch((ex) => {
+        throw ex.response.statusText + ". Details: " + ex.response.data.detail;
+      }),
   unfollow: (user_id) =>
     axios
       .post(

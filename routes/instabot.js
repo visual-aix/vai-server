@@ -33,6 +33,17 @@ export default (app) => {
       return res.json({ message: ex });
     }
   });
+  app.get("/instabot/timeline", async function (req, res) {
+    console.log("GET /instabot/timeline");
+    try {
+      const json = await AUTOMATION.engageWithTimeline();
+      return res.json(json);
+    } catch (ex) {
+      console.error(ex);
+      AUTOMATION.RUNNING.engageWithTimeline = false;
+      return res.json({ message: ex });
+    }
+  });
   app.get("/instabot/login", async function (req, res) {
     try {
       console.log("GET /instabot/login");
