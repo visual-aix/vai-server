@@ -12,6 +12,13 @@ const start = () => {
       await AUTOMATION.startEngaging();
     });
   });
+  ["0 13 * * *", "0 15 * * *", "0 17 * * *", "0 18 * * *"].forEach((sch) => {
+    schedule.scheduleJob(sch, async function () {
+      console.log("------ Running schedule", sch, new Date().toDateString());
+      await smartsleep(0, 60);
+      await AUTOMATION.engageWithTimeline();
+    });
+  });
 
   const at9AM = "0 9 * * *";
   schedule.scheduleJob(at9AM, async function () {
