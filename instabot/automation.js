@@ -257,6 +257,9 @@ const AUTOMATION = {
       return { message: "Already running" };
     }
 
+    const startAt = Date.now();
+    RUNNING.engageWithTimeline = true;
+
     let engagedCount = 0;
     const timeline = await INSTAPI.getTimeline();
     for (const post of timeline) {
@@ -277,9 +280,6 @@ const AUTOMATION = {
       await INSTAPI.likeMedia(media.id);
       engagedCount++;
     }
-
-    const startAt = Date.now();
-    RUNNING.engageWithTimeline = true;
 
     console.log(
       `[${moment().format()}] `,
