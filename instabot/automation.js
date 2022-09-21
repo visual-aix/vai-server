@@ -263,7 +263,7 @@ const AUTOMATION = {
     medias = medias.sort(() => (Math.random() > 0.5 ? 1 : -1));
 
     const maxLikes = randomBetween(5, 10);
-    const maxComments = randomBetween(1, 3);
+    const maxComments = randomBetween(1, 2);
 
     let likes = 0;
     let comments = 0;
