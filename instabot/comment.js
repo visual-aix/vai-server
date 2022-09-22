@@ -75,7 +75,7 @@ const MESSAGES = [
   "Well done",
   "Whoa",
   "Wonderful",
-  "Wow. Amazing AI",
+  "Wow. Amazing",
   "Wow. Just beautiful",
   "Wow. this AI amazes me",
   "WOW",

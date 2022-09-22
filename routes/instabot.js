@@ -25,9 +25,18 @@ export default (app) => {
   app.get("/instabot/engage", async function (req, res) {
     console.log("GET /instabot/engage");
     try {
-      const json = await AUTOMATION.startEngaging();
-      if (json.engaged < 5) await AUTOMATION.startEngaging();
+      let json = {},
+        engaged = 0;
+      while (engaged < 10) {
+        json = await AUTOMATION.startEngaging();
+        if (json.engaged) {
+          engaged += json.engaged;
+        } else {
+          break;
+        }
+      }
 
+      console.log("====> follow total engaged", engaged);
       return res.json(json);
     } catch (ex) {
       console.error(ex);
@@ -38,9 +47,18 @@ export default (app) => {
   app.get("/instabot/timeline", async function (req, res) {
     console.log("GET /instabot/timeline");
     try {
-      const json = await AUTOMATION.engageWithTimeline();
-      if (json.engaged < 5) await AUTOMATION.engageWithTimeline();
+      let json = {},
+        engaged = 0;
+      while (engaged < 10) {
+        json = await AUTOMATION.engageWithTimeline();
+        if (json.engaged) {
+          engaged += json.engaged;
+        } else {
+          break;
+        }
+      }
 
+      console.log("====> timeline total engaged", engaged);
       return res.json(json);
     } catch (ex) {
       console.error(ex);
