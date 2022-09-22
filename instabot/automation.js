@@ -43,6 +43,7 @@ var user_id = db.data.me ? db.data.me.pk : "";
 const RUNNING = {
   removeFollowingThatNotFollow: false,
   startEngaging: false,
+  engageWithTimeline: false,
 };
 
 const AUTOMATION = {
@@ -249,7 +250,7 @@ const AUTOMATION = {
       moment(startAt).fromNow(true)
     );
     RUNNING.startEngaging = false;
-    return { message: "OK" };
+    return { message: "OK", engaged: engagedCount };
   },
   engageWithTimeline: async () => {
     if (RUNNING.engageWithTimeline) {
@@ -268,6 +269,11 @@ const AUTOMATION = {
       if (media.commerciality_status !== "not_commercial") continue;
       if (media.is_paid_partnership) continue;
       if (!media.comment_likes_enabled) continue;
+      if (!media.caption) continue;
+      if (!media.user) continue;
+      if (media.is_paid_partnership) continue;
+      if (media.product_type === "ad") continue;
+      if (media.has_liked) continue;
 
       await smartsleep(2, 10);
       console.log(

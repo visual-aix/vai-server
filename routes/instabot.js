@@ -26,6 +26,8 @@ export default (app) => {
     console.log("GET /instabot/engage");
     try {
       const json = await AUTOMATION.startEngaging();
+      if (json.engaged < 5) await AUTOMATION.startEngaging();
+
       return res.json(json);
     } catch (ex) {
       console.error(ex);
