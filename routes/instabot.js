@@ -39,6 +39,8 @@ export default (app) => {
     console.log("GET /instabot/timeline");
     try {
       const json = await AUTOMATION.engageWithTimeline();
+      if (json.engaged < 5) await AUTOMATION.engageWithTimeline();
+
       return res.json(json);
     } catch (ex) {
       console.error(ex);

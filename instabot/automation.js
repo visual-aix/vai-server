@@ -104,7 +104,7 @@ const AUTOMATION = {
     }
 
     RUNNING.removeFollowingThatNotFollow = true;
-    await AUTOMATION.load();
+    await AUTOMATION.load(false);
 
     var notfollowingback = db.data.following.filter(
       (f) => db.data.followers.indexOf(f) === -1
@@ -277,7 +277,7 @@ const AUTOMATION = {
 
       await smartsleep(2, 10);
       console.log(
-        "❤️",
+        "📰 > ❤️",
         media.user.username,
         "[",
         (media.caption.text || "").substring(0, 30).split("\n").join(" "),
@@ -288,14 +288,14 @@ const AUTOMATION = {
     }
 
     console.log(
-      `[${moment().format()}] `,
+      `📰 [${moment().format()}] `,
       "Finished engageWithTimeline with",
       engagedCount,
       "in",
       moment(startAt).fromNow(true)
     );
     RUNNING.engageWithTimeline = false;
-    return { message: "OK" };
+    return { message: "OK", engaged: engagedCount };
   },
   engageWithUser: async (user) => {
     if (user.lastInteractedWith) {
