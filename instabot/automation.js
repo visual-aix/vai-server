@@ -87,11 +87,10 @@ const AUTOMATION = {
     await db.write();
 
     console.log(
-      `Loaded`,
       db.data.followers.length,
       "followers and",
       db.data.following.length,
-      "following for",
+      "following ",
       me.username
     );
 
@@ -113,10 +112,10 @@ const AUTOMATION = {
     await db.write();
 
     console.log(
-      db.data.followers.length - notfollowingback.length,
+      notfollowingback.length,
       "/",
-      db.data.followers.length,
-      "follow you and you're not following back."
+      db.data.following.length,
+      "you follow but they're not following back."
     );
     console.log(
       db.data.following.length - notfollowingback.length,
@@ -124,14 +123,16 @@ const AUTOMATION = {
       db.data.following.length,
       "you follow and they follow back."
     );
+    console.log(
+      db.data.followers.length - notfollowingback.length,
+      "/",
+      db.data.followers.length,
+      "follow you and you are not following back."
+    );
+    console.log("Check unfollow", notfollowingback.length);
+
     //start unfollow
     const startAt = Date.now();
-    console.log(
-      notfollowingback.length,
-      "/",
-      db.data.following.length,
-      "you follow but they are not following back. Check unfollow."
-    );
 
     let index = 0;
     let unfollowed = 0;
@@ -265,7 +266,7 @@ const AUTOMATION = {
     const timeline = await INSTAPI.getTimeline();
     for (const post of timeline) {
       const media = post.media_or_ad;
-      if (!media) return;
+      if (!media) continue;
       if (media.commerciality_status !== "not_commercial") continue;
       if (media.is_paid_partnership) continue;
       if (!media.comment_likes_enabled) continue;
@@ -308,8 +309,8 @@ const AUTOMATION = {
     let medias = await INSTAPI.getUserMedia(user.pk, 20);
     medias = medias.sort(() => (Math.random() > 0.5 ? 1 : -1));
 
-    const maxLikes = randomBetween(5, 10);
-    const maxComments = randomBetween(1, 2);
+    const maxLikes = randomBetween(3, 10);
+    const maxComments = randomBetween(0, 1);
 
     let likes = 0;
     let comments = 0;

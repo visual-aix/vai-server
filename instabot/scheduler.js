@@ -15,21 +15,19 @@ const start = () => {
   [
     "0 10 * * *",
     "0 11 * * *",
-    "0 12 * * *",
     "0 13 * * *",
     "0 14 * * *",
     "0 15 * * *",
     "0 16 * * *",
     "0 17 * * *",
     "0 18 * * *",
-    "0 19 * * *",
     "0 20 * * *",
     "0 21 * * *",
     "0 22 * * *",
   ].forEach((sch) => {
     schedule.scheduleJob(sch, async function () {
       console.log("------ Running schedule", sch, new Date().toDateString());
-      await smartsleep(0, 60);
+      await smartsleep(5 * 60, 45 * 60);
       await AUTOMATION.engageWithTimeline();
     });
   });
