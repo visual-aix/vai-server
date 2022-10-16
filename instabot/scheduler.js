@@ -5,7 +5,7 @@ import { smartsleep } from "./utils.js";
 const start = () => {
   console.log("Automation scheduled");
 
-  ["0 12 * * *", "0 19 * * *"].forEach((sch) => {
+  ["0 12 * * *"].forEach((sch) => {
     schedule.scheduleJob(sch, async function () {
       console.log("------ Running schedule", sch, new Date().toDateString());
       await smartsleep(0, 15 * 60);
